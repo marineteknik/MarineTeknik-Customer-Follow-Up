@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Customer Follow-up Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Aptos:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --primary: #0F3460;
+  --primary-light: #16475B;
+  --accent: #E8A537;
+  --danger: #D73C3C;
+  --warning: #E8914C;
+  --success: #2D6A4F;
+  --neutral-50: #FAFAF9;
+  --neutral-100: #F5F5F4;
+  --neutral-200: #E7E5E4;
+  --neutral-300: #D6D3D1;
+  --neutral-400: #A8A29E;
+  --neutral-500: #78716B;
+  --neutral-600: #57534E;
+  --neutral-700: #44403C;
+  --neutral-800: #292421;
+  --neutral-900: #1C1917;
+  --white: #FFFFFF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 25px rgba(0,0,0,0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Aptos', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--neutral-50);
+  color: var(--neutral-800);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+.topbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--neutral-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--primary);
+}
+
+.logo span {
+  color: var(--accent);
+}
+
+.topbar-badge {
+  background: #F5E6D3;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-family: 'Aptos', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background: var(--primary-light);
+}
+
+.btn-secondary {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.btn-secondary:hover {
+  background: #D6921A;
+}
+
+.btn-outline {
+  background: var(--white);
+  color: var(--neutral-700);
+  border: 1px solid var(--neutral-300);
+}
+
+.btn-outline:hover {
+  background: var(--neutral-100);
+  border-color: var(--neutral-400);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.tabs {
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.tab {
+  padding: 16px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--neutral-600);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--primary);
+}
+
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.content {
+  padding: 32px;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--neutral-200);
+  transition: all 0.2s ease;
+}
+
+.kpi-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--neutral-300);
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
+}
+
+.kpi-card.danger .kpi-value {
+  color: var(--danger);
+}
+
+.kpi-card.warning .kpi-value {
+  color: var(--warning);
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--neutral-500);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--white);
+  border: 1px solid var(--neutral-300);
+  border-radius: 8px;
+  padding: 8px 12px;
+  flex: 1;
+  max-width: 360px;
+  transition: all 0.2s ease;
+}
+
+.search-box:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.1);
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  font-family: 'Aptos', sans-serif;
+  font-size: 13px;
+  width: 100%;
+  color: var(--neutral-800);
+  background: transparent;
+}
+
+.search-box input::placeholder {
+  color: var(--neutral-400);
+}
+
+.search-icon {
+  color: var(--neutral-500);
+  font-size: 16px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 24px;
+  border: 1px solid var(--neutral-300);
+  background: var(--white);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--neutral-700);
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.filter-chip.danger.active {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.filter-chip.warning.active {
+  background: var(--warning);
+  border-color: var(--warning);
+}
+
+.filter-chip.success.active {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.customer-filter-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.customer-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--neutral-300);
+  background: var(--white);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--neutral-700);
+  transition: all 0.2s ease;
+}
+
+.customer-filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.customer-filter-btn.active {
+  background: var(--primary);
+  color: var(--white);
+  border-color: var(--primary);
+}
+
+.customer-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 50;
+  background: var(--white);
+  border: 1px solid var(--neutral-300);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg);
+  min-width: 280px;
+  max-height: 420px;
+  overflow-y: auto;
+  display: none;
+}
+
+.customer-dropdown.open {
+  display: block;
+}
+
+.customer-dropdown-item {
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+.customer-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.customer-dropdown-item:hover {
+  background: var(--neutral-100);
+}
+
+.customer-dropdown-item.selected {
+  background: #F5E6D3;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.customer-dropdown-item .check {
+  color: var(--primary);
+  opacity: 0;
+  font-weight: bold;
+}
+
+.customer-dropdown-item.selected .check {
+  opacity: 1;
+}
+
+.customer-count {
+  font-size: 11px;
+  color: var(--neutral-500);
+  margin-left: auto;
+}
+
+.table-wrap {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--neutral-200);
+  overflow: hidden;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead tr {
+  background: var(--primary);
+}
+
+thead th {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--white);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  user-select: none;
+  cursor: pointer;
+}
+
+thead th:last-child {
+  border-right: none;
+}
+
+thead th:hover {
+  background: var(--primary-light);
+}
+
+thead th.sort-asc::after {
+  content: ' ↑';
+  color: var(--accent);
+}
+
+thead th.sort-desc::after {
+  content: ' ↓';
+  color: var(--accent);
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--neutral-200);
+  transition: background 0.1s;
+}
+
+tbody tr:hover {
+  background: var(--neutral-50);
+}
+
+tbody td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  color: var(--neutral-700);
+}
+
+.row-overdue {
+  background: rgba(215, 60, 60, 0.04);
+}
+
+.row-overdue:hover {
+  background: rgba(215, 60, 60, 0.08);
+}
+
+.row-due-soon {
+  background: rgba(232, 145, 76, 0.04);
+}
+
+.row-due-soon:hover {
+  background: rgba(232, 145, 76, 0.08);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.badge-overdue {
+  background: rgba(215, 60, 60, 0.15);
+  color: var(--danger);
+}
+
+.badge-duesoon {
+  background: rgba(232, 145, 76, 0.15);
+  color: var(--warning);
+}
+
+.badge-upcoming {
+  background: rgba(45, 106, 79, 0.15);
+  color: var(--success);
+}
+
+.cell-num {
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--neutral-700);
+}
+
+.cell-date {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--neutral-600);
+  white-space: nowrap;
+}
+
+.cell-code {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.cell-name {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--neutral-800);
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--neutral-600);
+}
+
+.empty-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--neutral-800);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.empty-sub {
+  font-size: 13px;
+  max-width: 340px;
+  margin: 0 auto 24px;
+  line-height: 1.6;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  backdrop-filter: blur(2px);
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 32px;
+  width: 520px;
+  max-width: 95vw;
+  box-shadow: var(--shadow-xl);
+  transform: translateY(20px);
+  transition: transform 0.2s;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.modal-sub {
+  font-size: 13px;
+  color: var(--neutral-600);
+  margin-bottom: 24px;
+}
+
+.import-zone {
+  border: 2px dashed var(--neutral-300);
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--neutral-50);
+  margin-bottom: 20px;
+}
+
+.import-zone:hover,
+.import-zone.dragover {
+  border-color: var(--primary);
+  background: rgba(15, 52, 96, 0.05);
+}
+
+.import-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  opacity: 0.7;
+}
+
+.import-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 4px;
+  letter-spacing: -0.2px;
+}
+
+.import-sub {
+  font-size: 13px;
+  color: var(--neutral-600);
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 28px;
+}
+
+.printable-section {
+  background: var(--white);
+  padding: 28px;
+  border-radius: 12px;
+  border: 1px solid var(--neutral-200);
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.printable-header {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--accent);
+  letter-spacing: -0.3px;
+}
+
+.printable-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.printable-table th {
+  background: var(--primary);
+  color: var(--white);
+  padding: 11px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.printable-table th:last-child {
+  border-right: none;
+}
+
+.printable-table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--neutral-200);
+  font-size: 13px;
+  color: var(--neutral-700);
+}
+
+.printable-table tbody tr:hover {
+  background: var(--neutral-50);
+}
+
+.export-actions {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+  background: #F5E6D3;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid var(--accent);
+}
+
+.summary-box {
+  background: #F5E6D3;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: var(--neutral-700);
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.summary-box strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.toast {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  background: var(--primary);
+  color: var(--white);
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(120px);
+  transition: transform 0.3s ease;
+  border-left: 4px solid var(--accent);
+}
+
+.toast.show {
+  transform: translateY(0);
+}
+
+@media print {
+  .topbar, .tabs, .toolbar, .btn, .export-actions, .modal-overlay, .search-box, .filter-group, .customer-filter-wrap {
+    display: none !important;
+  }
+  body {
+    background: var(--white);
+  }
+  .page {
+    display: block !important;
+    padding: 0;
+  }
+  .content {
+    padding: 0;
+  }
+  .printable-section {
+    box-shadow: none;
+    border: none;
+    page-break-inside: avoid;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--neutral-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neutral-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neutral-400);
+}
+
+@media (max-width: 900px) {
+  .kpi-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0 16px;
+  }
+  .content {
+    padding: 16px;
+  }
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+  .tabs {
+    padding: 0 16px;
+  }
+  .modal {
+    padding: 24px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">MARINE<span>TEKNIK</span></div>
+    <div class="topbar-badge">Follow-up Planner</div>
+  </div>
+  <div class="topbar-right">
+    <button class="btn btn-primary btn-sm" onclick="openImportModal()">📁 Import</button>
+    <button class="btn btn-secondary btn-sm" id="exportViewBtn" onclick="exportCurrentView()" disabled>📸 Export</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('overview', this)">Overview</div>
+  <div class="tab" onclick="switchTab('customer', this)">By Customer</div>
+</div>
+
+<div class="content">
+
+  <div class="page active" id="page-overview">
+    
+    <div class="kpi-row">
+      <div class="kpi-card danger">
+        <div class="kpi-label">⚠ Overdue</div>
+        <div class="kpi-value" id="kpiOverdue">—</div>
+        <div class="kpi-sub">Requires immediate follow-up</div>
+      </div>
+      <div class="kpi-card warning">
+        <div class="kpi-label">⏰ Due Soon</div>
+        <div class="kpi-value" id="kpiDueSoon">—</div>
+        <div class="kpi-sub">Due within 30 days</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Outstanding Balance</div>
+        <div class="kpi-value" id="kpiTotal">—</div>
+        <div class="kpi-sub">Total remaining amount</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Invoices</div>
+        <div class="kpi-value" id="kpiInvoiceCount">—</div>
+        <div class="kpi-sub">In ledger</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search customer, invoice, or description…" oninput="renderOverviewTable()">
+      </div>
+      <div class="filter-group">
+        <div class="filter-chip danger" data-filter="OVERDUE" onclick="toggleFilter(this)">Overdue</div>
+        <div class="filter-chip warning" data-filter="DUE SOON" onclick="toggleFilter(this)">Due Soon</div>
+        <div class="filter-chip success" data-filter="Upcoming" onclick="toggleFilter(this)">Upcoming</div>
+      </div>
+      <div class="spacer"></div>
+      <span style="font-size:12px; color:var(--neutral-600); font-weight:500" id="rowCountLabel"></span>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table id="overviewTable">
+          <thead>
+            <tr>
+              <th onclick="sortBy('Due Date')">Due Date</th>
+              <th onclick="sortBy('Document Date')">Doc Date</th>
+              <th onclick="sortBy('Document Type')">Type</th>
+              <th onclick="sortBy('Document No.')">Invoice #</th>
+              <th onclick="sortBy('Customer No.')">Cust #</th>
+              <th onclick="sortBy('Customer Name')">Customer</th>
+              <th onclick="sortBy('Description')">Description</th>
+              <th onclick="sortBy('Amount ($)')">Amount</th>
+              <th onclick="sortBy('Remaining Amt. ($)')">Remaining</th>
+              <th onclick="sortBy('External Document No.')">Ext Doc #</th>
+              <th onclick="sortBy('Status')">Status</th>
+            </tr>
+          </thead>
+          <tbody id="overviewTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-customer">
+    
+    <div style="margin-bottom: 28px;">
+      <label style="font-size:11px; font-weight:700; color:var(--neutral-700); text-transform:uppercase; letter-spacing:0.8px; display:block; margin-bottom:10px;">Select Customer</label>
+      <div class="customer-filter-wrap">
+        <button class="customer-filter-btn" id="customerFilterBtn" onclick="toggleCustomerDropdown()">
+          <span>👤</span>
+          <span id="customerFilterLabel">All Customers</span>
+          <span style="font-size:10px">▼</span>
+        </button>
+        <div class="customer-dropdown" id="customerDropdown"></div>
+      </div>
+    </div>
+
+    <div class="kpi-row" id="customerKpiRow" style="display:none;">
+      <div class="kpi-card danger">
+        <div class="kpi-label">⚠ Overdue</div>
+        <div class="kpi-value" id="custKpiOverdue">—</div>
+        <div class="kpi-sub">invoices</div>
+      </div>
+      <div class="kpi-card warning">
+        <div class="kpi-label">⏰ Due Soon</div>
+        <div class="kpi-value" id="custKpiDueSoon">—</div>
+        <div class="kpi-sub">invoices</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Outstanding Balance</div>
+        <div class="kpi-value" id="custKpiTotal">—</div>
+        <div class="kpi-sub">Total remaining</div>
+      </div>
+    </div>
+
+    <div class="export-actions" id="exportActionsSection" style="display:none;">
+      <button class="btn btn-secondary btn-sm" onclick="captureCustomerViewAsPDF()">📄 Export PDF</button>
+      <button class="btn btn-primary btn-sm" onclick="printCustomerView()">🖨 Print</button>
+      <button class="btn btn-outline btn-sm" onclick="copyCustomerData()">📋 Copy Data</button>
+    </div>
+
+    <div class="printable-section" id="customerPrintSection" style="display:none;">
+      <div class="printable-header" id="customerPrintTitle">Customer Follow-up Details</div>
+
+      <table class="printable-table" id="customerTable">
+        <thead>
+          <tr>
+            <th>Due Date</th>
+            <th>Doc Date</th>
+            <th>Type</th>
+            <th>Invoice #</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Remaining</th>
+            <th>Ext Doc #</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="customerTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="importModal">
+  <div class="modal" style="width:480px">
+    <div class="modal-title">📁 Import Ledger</div>
+    <div class="modal-sub">Upload your Customer Ledger Entries .xlsx export file.</div>
+    <div class="import-zone" id="importZone" onclick="document.getElementById('fileInput').click()"
+         ondragover="event.preventDefault();this.classList.add('dragover')"
+         ondragleave="this.classList.remove('dragover')"
+         ondrop="handleDrop(event)">
+      <div class="import-icon">📂</div>
+      <div class="import-title">Click to upload or drag & drop</div>
+      <div class="import-sub">Accepts .xlsx Customer Ledger files</div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileSelect(event)">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeImportModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let ledgerData = [];
+let activeFilters = new Set();
+let selectedCustomer = null;
+let sortCol = 'Due Date';
+let sortDir = 'asc';
+
+function openImportModal() {
+  document.getElementById('importModal').classList.add('open');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('importZone').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+      if (!rows.length) {
+        showToast('⚠ No data found in file');
+        return;
+      }
+
+      const firstRow = rows[0];
+      if (!firstRow['Due Date'] || !firstRow['Customer Name']) {
+        showToast('⚠ Invalid file — missing required columns');
+        return;
+      }
+
+      ledgerData = rows.map(r => {
+        const dueDate = formatDate(r['Due Date']);
+        const docDate = formatDate(r['Document Date']);
+        const docType = String(r['Document Type'] || '').trim();
+        const docNum = String(r['Document No.'] || r['Document Number'] || '').trim();
+        const custNo = String(r['Customer No.'] || r['Customer No'] || '').trim();
+        const custName = String(r['Customer Name'] || '').trim();
+        const desc = String(r['Description'] || '').trim();
+        const amt = parseFloat(r['Amount ($)'] || r['Amount'] || 0) || 0;
+        const remAmt = parseFloat(r['Remaining Amt. ($)'] || r['Remaining Amount'] || 0) || 0;
+        const extDoc = String(r['External Document No.'] || r['External Document No'] || '').trim();
+
+        return {
+          'Due Date': dueDate,
+          'Document Date': docDate,
+          'Document Type': docType,
+          'Document No.': docNum,
+          'Customer No.': custNo,
+          'Customer Name': custName,
+          'Description': desc,
+          'Amount ($)': amt,
+          'Remaining Amt. ($)': remAmt,
+          'External Document No.': extDoc,
+          'Status': calcStatus(dueDate)
+        };
+      }).filter(row => row['Customer Name'] && row['Document No.']);
+
+      if (!ledgerData.length) {
+        showToast('⚠ No valid data found');
+        return;
+      }
+
+      renderKPIs();
+      renderOverviewTable();
+      buildCustomerDropdown();
+      document.getElementById('exportViewBtn').disabled = false;
+      closeImportModal();
+      showToast(`✓ Imported ${ledgerData.length} invoices`);
+    } catch(err) {
+      console.error(err);
+      showToast('⚠ Error reading file');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function formatDate(val) {
+  if (!val || val === '' || val === 'NaT') return '';
+  if (val instanceof Date) {
+    if (isNaN(val.getTime())) return '';
+    return val.toISOString().split('T')[0];
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed === '' || trimmed.includes('NaT')) return '';
+    return trimmed.split('T')[0];
+  }
+  if (typeof val === 'number') {
+    const d = new Date((val - 25569) * 86400 * 1000);
+    if (isNaN(d.getTime())) return '';
+    return d.toISOString().split('T')[0];
+  }
+  return '';
+}
+
+function calcStatus(dateStr) {
+  if (!dateStr) return 'No Date';
+  const d = new Date(dateStr + 'T12:00:00');
+  if (isNaN(d.getTime())) return 'No Date';
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const diff = Math.floor((d - today) / 86400000);
+  if (diff < 0) return 'OVERDUE';
+  if (diff <= 30) return 'DUE SOON';
+  return 'Upcoming';
+}
+
+function renderKPIs() {
+  const overdue = ledgerData.filter(r => r['Status'] === 'OVERDUE').length;
+  const dueSoon = ledgerData.filter(r => r['Status'] === 'DUE SOON').length;
+  const total = ledgerData.reduce((s, r) => s + r['Remaining Amt. ($)'], 0);
+  const count = ledgerData.length;
+
+  document.getElementById('kpiOverdue').textContent = overdue;
+  document.getElementById('kpiDueSoon').textContent = dueSoon;
+  document.getElementById('kpiTotal').textContent = fmt$(total);
+  document.getElementById('kpiInvoiceCount').textContent = count;
+}
+
+function fmt$(v) {
+  if (!v && v !== 0) return '—';
+  return '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s + 'T12:00:00');
+  if (isNaN(d.getTime())) return s;
+  return (d.getMonth()+1).toString().padStart(2,'0') + '/' + 
+         d.getDate().toString().padStart(2,'0') + '/' + 
+         String(d.getFullYear()).slice(2);
+}
+
+function getFilteredData() {
+  let list = [...ledgerData];
+
+  if (activeFilters.size > 0) {
+    list = list.filter(r => activeFilters.has(r['Status']));
+  }
+
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  if (q) {
+    list = list.filter(r =>
+      String(r['Customer No.']).toLowerCase().includes(q) ||
+      String(r['Customer Name']).toLowerCase().includes(q) ||
+      String(r['Document No.']).toLowerCase().includes(q) ||
+      String(r['Description']).toLowerCase().includes(q) ||
+      String(r['External Document No.']).toLowerCase().includes(q)
+    );
+  }
+
+  list.sort((a, b) => {
+    let av = a[sortCol];
+    let bv = b[sortCol];
+    
+    const statusOrder = { 'OVERDUE': 0, 'DUE SOON': 1, 'Upcoming': 2, 'No Date': 3 };
+    if (sortCol === 'Status') {
+      av = statusOrder[av] ?? 9;
+      bv = statusOrder[bv] ?? 9;
+    }
+    
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    
+    if (av < bv) return sortDir === 'asc' ? -1 : 1;
+    if (av > bv) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  return list;
+}
+
+function renderOverviewTable() {
+  const tbody = document.getElementById('overviewTableBody');
+  const list = getFilteredData();
+  
+  document.getElementById('rowCountLabel').textContent = list.length + ' invoices';
+
+  if (!ledgerData.length) {
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No data imported</div><div class="empty-sub">Click "Import" to load your Customer Ledger Entries file.</div><button class="btn btn-primary" onclick="openImportModal()">Import Now</button></div></td></tr>`;
+    return;
+  }
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:40px;color:var(--neutral-600)">No invoices match your filters.</td></tr>`;
+    return;
+  }
+
+  const statusClass = { 'OVERDUE': 'badge-overdue', 'DUE SOON': 'badge-duesoon', 'Upcoming': 'badge-upcoming' };
+  const rowClass = { 'OVERDUE': 'row-overdue', 'DUE SOON': 'row-due-soon' };
+
+  tbody.innerHTML = list.map((r, idx) => {
+    const st = r['Status'];
+    return `<tr class="${rowClass[st] || ''}">
+      <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Due Date'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Document Date'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800)">${escHtml(r['Document Type'])}</td>
+      <td style="font-weight:600;color:var(--primary)">${escHtml(r['Document No.'])}</td>
+      <td style="font-weight:600;color:var(--primary);font-size:12px">${escHtml(r['Customer No.'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(r['Customer Name'])}">${escHtml(r['Customer Name'])}</td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--neutral-700)" title="${escHtml(r['Description'])}">${escHtml(r['Description'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800);text-align:right">${fmt$(r['Amount ($)'])}</td>
+      <td style="font-weight:600;color:var(--neutral-800);text-align:right">${fmt$(r['Remaining Amt. ($)'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;padding:11px 12px;transition:all 0.2s" onmouseover="this.style.backgroundColor='#F5E6D3';this.style.borderRadius='6px'" onmouseout="this.style.backgroundColor='transparent'" ondblclick="editOverviewExtDoc(this, ${idx})" title="Double-click to edit">${escHtml(r['External Document No.'])}</td>
+      <td><span class="badge ${statusClass[st] || ''}">${st}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildCustomerDropdown() {
+  const custMap = {};
+  ledgerData.forEach(r => {
+    const cust = r['Customer Name'] || '(Unknown)';
+    const custNo = r['Customer No.'] || '';
+    if (!custMap[cust]) custMap[cust] = { no: custNo, count: 0 };
+    custMap[cust].count++;
+  });
+  
+  const sorted = Object.entries(custMap).sort((a, b) => b[1].count - a[1].count);
+
+  let html = `<div class="customer-dropdown-item ${!selectedCustomer ? 'selected' : ''}" onclick="selectCustomer(null)">
+    <span class="check">✓</span>
+    <span>All Customers</span>
+    <span class="customer-count">${ledgerData.length}</span>
+  </div>`;
+
+  sorted.forEach(([custName, data]) => {
+    const sel = selectedCustomer === custName ? 'selected' : '';
+    html += `<div class="customer-dropdown-item ${sel}" onclick="selectCustomer('${escHtml(custName)}')">
+      <span class="check">✓</span>
+      <span>${data.no} ${escHtml(custName)}</span>
+      <span class="customer-count">${data.count}</span>
+    </div>`;
+  });
+
+  document.getElementById('customerDropdown').innerHTML = html;
+}
+
+function toggleCustomerDropdown() {
+  document.getElementById('customerDropdown').classList.toggle('open');
+}
+
+function selectCustomer(custName) {
+  selectedCustomer = custName;
+  document.getElementById('customerFilterLabel').textContent = custName || 'All Customers';
+  document.getElementById('customerFilterBtn').classList.toggle('active', !!custName);
+  document.getElementById('customerDropdown').classList.remove('open');
+  buildCustomerDropdown();
+  renderCustomerView();
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.customer-filter-wrap')) {
+    document.getElementById('customerDropdown').classList.remove('open');
+  }
+});
+
+function renderCustomerView() {
+  if (!selectedCustomer) {
+    document.getElementById('customerPrintSection').style.display = 'none';
+    document.getElementById('customerKpiRow').style.display = 'none';
+    document.getElementById('exportActionsSection').style.display = 'none';
+    return;
+  }
+
+  const custData = ledgerData.filter(r => r['Customer Name'] === selectedCustomer);
+  
+  if (!custData.length) {
+    document.getElementById('customerPrintSection').style.display = 'none';
+    document.getElementById('exportActionsSection').style.display = 'none';
+    return;
+  }
+
+  const overdue = custData.filter(r => r['Status'] === 'OVERDUE');
+  const dueSoon = custData.filter(r => r['Status'] === 'DUE SOON');
+  const total = custData.reduce((s, r) => s + r['Remaining Amt. ($)'], 0);
+
+  document.getElementById('customerPrintSection').style.display = 'block';
+  document.getElementById('customerKpiRow').style.display = 'grid';
+  document.getElementById('exportActionsSection').style.display = 'flex';
+  document.getElementById('customerPrintTitle').textContent = `Follow-up: ${selectedCustomer}`;
+
+  document.getElementById('custKpiOverdue').textContent = overdue.length;
+  document.getElementById('custKpiDueSoon').textContent = dueSoon.length;
+  document.getElementById('custKpiTotal').textContent = fmt$(total);
+
+  const tbody = document.getElementById('customerTableBody');
+  const statusClass = { 'OVERDUE': 'badge-overdue', 'DUE SOON': 'badge-duesoon', 'Upcoming': 'badge-upcoming' };
+  
+  const sorted = custData.sort((a, b) => {
+    const aDate = new Date(a['Due Date']);
+    const bDate = new Date(b['Due Date']);
+    return aDate - bDate;
+  });
+
+  tbody.innerHTML = sorted.map((r, idx) => {
+    const st = r['Status'];
+    return `<tr>
+      <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Due Date'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Document Date'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800)">${escHtml(r['Document Type'])}</td>
+      <td style="font-weight:600;color:var(--primary)">${escHtml(r['Document No.'])}</td>
+      <td style="color:var(--neutral-700)">${escHtml(r['Description'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800);text-align:right">${fmt$(r['Amount ($)'])}</td>
+      <td style="font-weight:600;color:var(--neutral-800);text-align:right">${fmt$(r['Remaining Amt. ($)'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800);cursor:pointer;padding:11px 12px;transition:all 0.2s" onmouseover="this.style.backgroundColor='#F5E6D3';this.style.borderRadius='6px'" onmouseout="this.style.backgroundColor='transparent'" ondblclick="editExtDoc(this, ${idx})" title="Double-click to edit">${escHtml(r['External Document No.'])}</td>
+      <td><span class="badge ${statusClass[st] || ''}">${st}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function editExtDoc(cell, rowIdx) {
+  const custData = ledgerData.filter(r => r['Customer Name'] === selectedCustomer)
+    .sort((a, b) => new Date(a['Due Date']) - new Date(b['Due Date']));
+  
+  const currentVal = custData[rowIdx]['External Document No.'];
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentVal;
+  input.style.cssText = 'font-family:"Aptos", sans-serif;font-size:13px;font-weight:500;padding:8px 10px;border:1px solid var(--primary);border-radius:6px;width:100%;box-sizing:border-box;color:var(--neutral-800)';
+  
+  cell.innerHTML = '';
+  cell.appendChild(input);
+  input.focus();
+  input.select();
+  
+  function saveEdit() {
+    const newVal = input.value.trim();
+    custData[rowIdx]['External Document No.'] = newVal;
+    const origIdx = ledgerData.indexOf(custData[rowIdx]);
+    if (origIdx >= 0) ledgerData[origIdx]['External Document No.'] = newVal;
+    renderCustomerView();
+    showToast(`✓ Updated`);
+  }
+  
+  input.addEventListener('blur', saveEdit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveEdit();
+    if (e.key === 'Escape') renderCustomerView();
+  });
+}
+
+function exportCurrentView() {
+  if (!selectedCustomer) {
+    showToast('⚠ Please select a customer first');
+    return;
+  }
+  captureCustomerViewAsPDF();
+}
+
+function editOverviewExtDoc(cell, rowIdx) {
+  const list = getFilteredData();
+  const currentVal = list[rowIdx]['External Document No.'];
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = currentVal;
+  input.style.cssText = 'font-family:"Aptos", sans-serif;font-size:13px;font-weight:500;padding:8px 10px;border:1px solid var(--primary);border-radius:6px;width:100%;box-sizing:border-box;color:var(--neutral-800)';
+  
+  cell.innerHTML = '';
+  cell.appendChild(input);
+  input.focus();
+  input.select();
+  
+  function saveEdit() {
+    const newVal = input.value.trim();
+    const origRow = list[rowIdx];
+    const origIdx = ledgerData.indexOf(origRow);
+    if (origIdx >= 0) {
+      ledgerData[origIdx]['External Document No.'] = newVal;
+    }
+    renderOverviewTable();
+    showToast(`✓ Updated`);
+  }
+  
+  input.addEventListener('blur', saveEdit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveEdit();
+    if (e.key === 'Escape') renderOverviewTable();
+  });
+}
+
+function captureCustomerViewAsPDF() {
+  const section = document.getElementById('customerPrintSection');
+  if (!section || section.style.display === 'none') {
+    showToast('⚠ No data to export');
+    return;
+  }
+
+  showToast('📄 Creating PDF…');
+  
+  html2canvas(section, {
+    backgroundColor: '#FFFFFF',
+    scale: 2,
+    logging: false,
+    useCORS: true
+  }).then(canvas => {
+    const { jsPDF } = window.jspdf;
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const imgWidth = 190;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+    
+    const custName = (selectedCustomer || 'customer').replace(/\s+/g, '_');
+    const today = new Date().toISOString().split('T')[0];
+    pdf.save(`${custName}_followup_${today}.pdf`);
+    
+    showToast(`✓ PDF saved`);
+  }).catch(err => {
+    console.error(err);
+    showToast('⚠ Error creating PDF');
+  });
+}
+
+function printCustomerView() {
+  const section = document.getElementById('customerPrintSection');
+  if (!section || section.style.display === 'none') {
+    showToast('⚠ No data to print');
+    return;
+  }
+
+  const printWindow = window.open('', '_blank');
+  const custName = selectedCustomer || 'Customer';
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Follow-up: ${custName}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Aptos', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 24px; background: white; color: #1C1917; }
+        h1 { color: #0F3460; font-size: 20px; margin-bottom: 4px; letter-spacing: -0.3px; }
+        .date { color: #78716B; font-size: 12px; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th { background: #0F3460; color: white; padding: 11px 12px; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        td { padding: 11px 12px; border-bottom: 1px solid #E7E5E4; font-size: 13px; }
+        tr:hover { background: #FAFAF9; }
+        .summary { background: #F5E6D3; padding: 14px 16px; border-radius: 8px; margin-top: 20px; font-size: 12px; border: 1px solid #E8A537; }
+        .summary strong { color: #0F3460; font-weight: 700; }
+      </style>
+    </head>
+    <body>
+      <h1>Customer Follow-up: ${custName}</h1>
+      <div class="date">Generated: ${today}</div>
+      ${section.innerHTML}
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
+
+function copyCustomerData() {
+  const custData = ledgerData.filter(r => r['Customer Name'] === selectedCustomer);
+  if (!custData.length) {
+    showToast('⚠ No data to copy');
+    return;
+  }
+
+  let text = `Customer Follow-up: ${selectedCustomer}\n`;
+  text += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+  text += `Due Date\tDoc Date\tType\tInvoice #\tDescription\tAmount\tRemaining\tExt Doc #\tStatus\n`;
+  
+  custData.forEach(r => {
+    text += `${r['Due Date']}\t${r['Document Date']}\t${r['Document Type']}\t${r['Document No.']}\t${r['Description']}\t${r['Amount ($)']}\t${r['Remaining Amt. ($)']}\t${r['External Document No.']}\t${r['Status']}\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('✓ Copied');
+  });
+}
+
+function sortBy(col) {
+  if (sortCol === col) {
+    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortCol = col;
+    sortDir = 'asc';
+  }
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sort-asc', 'sort-desc'));
+  renderOverviewTable();
+}
+
+function toggleFilter(el) {
+  const f = el.dataset.filter;
+  if (activeFilters.has(f)) {
+    activeFilters.delete(f);
+    el.classList.remove('active');
+  } else {
+    activeFilters.add(f);
+    el.classList.add('active');
+  }
+  renderOverviewTable();
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  if (tab === 'overview') {
+    document.getElementById('page-overview').classList.add('active');
+  } else if (tab === 'customer') {
+    document.getElementById('page-customer').classList.add('active');
+    buildCustomerDropdown();
+  }
+}
+
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>
