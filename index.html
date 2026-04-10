@@ -1102,7 +1102,7 @@ tbody td {
     <div class="filter-section">
       <label class="filter-checkbox">
         <input type="checkbox" id="filterOpen" onchange="applyFilters()">
-        <span>Open invoices only</span>
+        <span>Open invoices (remaining balance)</span>
       </label>
     </div>
 
@@ -1604,7 +1604,13 @@ function renderCustomerView() {
     return;
   }
 
-  const custData = ledgerData.filter(r => r['Customer Name'] === selectedCustomer);
+  let custData = ledgerData.filter(r => r['Customer Name'] === selectedCustomer);
+  
+  // Apply filters from sidebar
+  const openOnly = document.getElementById('filterOpen').checked;
+  if (openOnly) {
+    custData = custData.filter(r => r['Remaining Amt. ($)'] > 0);
+  }
   
   if (!custData.length) {
     document.getElementById('customerPrintSection').style.display = 'none';
