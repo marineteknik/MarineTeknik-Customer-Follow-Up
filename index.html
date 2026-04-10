@@ -1171,6 +1171,7 @@ tbody td {
                 <th onclick="sortBy('Document No.')">Invoice #</th>
                 <th onclick="sortBy('Customer No.')">Cust #</th>
                 <th onclick="sortBy('Customer Name')">Customer</th>
+                <th onclick="sortBy('Project Code')">Project Code</th>
                 <th onclick="sortBy('Description')">Description</th>
                 <th onclick="sortBy('Amount ($)')">Amount</th>
                 <th onclick="sortBy('Remaining Amt. ($)')">Remaining</th>
@@ -1232,6 +1233,8 @@ tbody td {
               <th>Doc Date</th>
               <th>Type</th>
               <th>Invoice #</th>
+              <th>Cust #</th>
+              <th>Project Code</th>
               <th>Description</th>
               <th>Amount</th>
               <th>Remaining</th>
@@ -1329,6 +1332,7 @@ function processFile(file) {
         const docNum = String(r['Document No.'] || r['Document Number'] || '').trim();
         const custNo = String(r['Customer No.'] || r['Customer No'] || '').trim();
         const custName = String(r['Customer Name'] || '').trim();
+        const projCode = String(r['Project Code'] || r['Project'] || '').trim();
         const desc = String(r['Description'] || '').trim();
         const amt = parseFloat(r['Amount ($)'] || r['Amount'] || 0) || 0;
         const remAmt = parseFloat(r['Remaining Amt. ($)'] || r['Remaining Amount'] || 0) || 0;
@@ -1341,6 +1345,7 @@ function processFile(file) {
           'Document No.': docNum,
           'Customer No.': custNo,
           'Customer Name': custName,
+          'Project Code': projCode,
           'Description': desc,
           'Amount ($)': amt,
           'Remaining Amt. ($)': remAmt,
@@ -1538,8 +1543,9 @@ function renderOverviewTable() {
       <td style="font-weight:500;color:var(--neutral-800)">${escHtml(r['Document Type'])}</td>
       <td style="font-weight:600;color:var(--primary)">${escHtml(r['Document No.'])}</td>
       <td style="font-weight:600;color:var(--primary);font-size:12px">${escHtml(r['Customer No.'])}</td>
-      <td style="font-weight:500;color:var(--neutral-800);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(r['Customer Name'])}">${escHtml(r['Customer Name'])}</td>
-      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--neutral-700)" title="${escHtml(r['Description'])}">${escHtml(r['Description'])}</td>
+      <td style="font-weight:500;color:var(--neutral-800);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(r['Customer Name'])}">${escHtml(r['Customer Name'])}</td>
+      <td style="font-weight:600;color:var(--primary);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(r['Project Code'])}">${escHtml(r['Project Code']) || '—'}</td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--neutral-700)" title="${escHtml(r['Description'])}">${escHtml(r['Description'])}</td>
       <td style="font-weight:500;color:var(--neutral-800);text-align:right">${fmt$(r['Amount ($)'])}</td>
       <td style="font-weight:600;color:var(--neutral-800);text-align:right">${fmt$(r['Remaining Amt. ($)'])}</td>
       <td class="doc-num-cell" ondblclick="editDocNum(this, ${dataIdx}, true)" title="Double-click to edit">${escHtml(r['External Document No.'])}</td>
@@ -1648,6 +1654,8 @@ function renderCustomerView() {
       <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Document Date'])}</td>
       <td style="font-weight:500;color:var(--neutral-800)">${escHtml(r['Document Type'])}</td>
       <td style="font-weight:600;color:var(--primary)">${escHtml(r['Document No.'])}</td>
+      <td style="font-weight:600;color:var(--primary);font-size:12px">${escHtml(r['Customer No.'])}</td>
+      <td style="font-weight:600;color:var(--primary);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(r['Project Code'])}">${escHtml(r['Project Code']) || '—'}</td>
       <td style="color:var(--neutral-700)">${escHtml(r['Description'])}</td>
       <td style="font-weight:500;color:var(--neutral-800);text-align:right">${fmt$(r['Amount ($)'])}</td>
       <td style="font-weight:600;color:var(--neutral-800);text-align:right">${fmt$(r['Remaining Amt. ($)'])}</td>
@@ -1811,10 +1819,10 @@ function copyCustomerData() {
 
   let text = `Customer Follow-up: ${selectedCustomer}\n`;
   text += `Generated: ${new Date().toLocaleDateString()}\n\n`;
-  text += `Due Date\tDoc Date\tType\tInvoice #\tDescription\tAmount\tRemaining\tExt Doc #\tStatus\n`;
+  text += `Due Date\tDoc Date\tType\tInvoice #\tCust #\tProject Code\tDescription\tAmount\tRemaining\tExt Doc #\tStatus\n`;
   
   custData.forEach(r => {
-    text += `${r['Due Date']}\t${r['Document Date']}\t${r['Document Type']}\t${r['Document No.']}\t${r['Description']}\t${r['Amount ($)']}\t${r['Remaining Amt. ($)']}\t${r['External Document No.']}\t${r['Status']}\n`;
+    text += `${r['Due Date']}\t${r['Document Date']}\t${r['Document Type']}\t${r['Document No.']}\t${r['Customer No.']}\t${r['Project Code']}\t${r['Description']}\t${r['Amount ($)']}\t${r['Remaining Amt. ($)']}\t${r['External Document No.']}\t${r['Status']}\n`;
   });
 
   navigator.clipboard.writeText(text).then(() => {
