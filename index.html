@@ -1537,8 +1537,9 @@ function renderOverviewTable() {
   tbody.innerHTML = list.map((r, idx) => {
     const st = r['Status'];
     const dataIdx = ledgerData.indexOf(r);
+    const dueDateColor = st === 'OVERDUE' ? 'color:var(--danger);font-weight:600' : 'color:var(--neutral-800);font-weight:500';
     return `<tr class="${rowClass[st] || ''}">
-      <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Due Date'])}</td>
+      <td style="${dueDateColor}">${fmtDate(r['Due Date'])}</td>
       <td style="font-weight:500;color:var(--neutral-800)">${fmtDate(r['Document Date'])}</td>
       <td style="font-weight:500;color:var(--neutral-800)">${escHtml(r['Document Type'])}</td>
       <td style="font-weight:600;color:var(--primary)">${escHtml(r['Document No.'])}</td>
